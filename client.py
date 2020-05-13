@@ -1,28 +1,42 @@
 import argparse
 import requests
+import sys
 
 def create_main_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('host', default='localhost')
-    parser.add_argument('port', default=8000)
+    parser.add_argument('--host', default = 'localhost')
+    parser.add_argument('--port', default = 8000, type = int)
     return parser.parse_args()
 def get_in(login, password, parser):
-    return bool(requests.get(f'http://{parser.host}:{parser.port}/autification', dict(login = login, password = password)).text)
+    answer = (requests.get(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text)
+    if answer == 'True':
+        return True
+    else:
+        return False
 
 def create_login(login, password, parser):
-    return bool(requests.post(f'http://{parser.host}:{parser.port}/autification', dict(login = login, password = password)).text)
+    answer = (requests.post(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text)
+    if answer == 'True':
+        return True
+    else:
+        return False
 
 def check_tokens(username, parser):
-    return (requests.get(f'http://{parser.host}:{parser.port}/{username}/tokens').text)
+    return int(requests.get(f'http://{parser.host}:{parser.port}/{username}/tokens').text)
 
 def add_take_tokens(username, amount, parser):
-    return bool(requests.post(f'http://{parser.host}:{parser.port}/{username}/tokens', amount).text)
+    answer = (requests.post(f'http://{parser.host}:{parser.port}/{username}/tokens', params = dict(amount = amount)).text)
+    if answer == 'True':
+        return True
+    else:
+        return False
 
 def play(username, colour, bet, parser):
     if add_take_tokens(username, -bet, parser):
         tokens = check_tokens(username, parser)
-        print(f'Your tokens for now: {tokens}') 
-        result = list(requests.get(f'http://{parser.host}:{parser.port}/{username}/game').text)
+        print(f'Your tokens for now: {tokens}')
+        results = (requests.get(f'http://{parser.host}:{parser.port}/{username}/game')).text
+        result = results.split(' ')
         print(f'The game goes on! Today it is {result[1]} , {result[0]}!')
         if colour == result[0]:
             print('You won!')
@@ -31,25 +45,26 @@ def play(username, colour, bet, parser):
             else:
                 add_take_tokens(username, 14 * bet, parser)
             tokens = check_tokens(username, parser)
-        else: 
-            print('You lost(')       
+        else:
+            print('You lost(')
         return True
     else:
         print('Your bet is not correct(')
-        add_take_tokens(username, bet, parser)
         return False
-    
+
 def login_help():
     print('new - create login and password')
     print('login - login into system')
     print('exit - quit')
-    
+
 def play_help():
     print('show - show the amount of tokens')
     print('add - add some tokens')
     print('play - go to table and play')
-    
-parser = create_main_parser()    
+
+
+parser = create_main_parser()
+login = ''
 while True:
     command = input('Write the comand> ')
     if command == 'help':
@@ -57,7 +72,8 @@ while True:
     elif command == 'new':
         login = input('Write new login> ')
         password = input('Write password> ')
-        create_login(login, password, parser)
+        if not create_login(login, password, parser):
+            print('This login is already exist(')
     elif command == 'exit':
         exit()
     elif command == 'login':
@@ -68,10 +84,10 @@ while True:
             print(f'Welcome, {login}!')
             break
         else:
-            print('Wrong password(')
+            print('Wrong password or login(')
     else:
         print('Invalid command')
-        
+
 while True:
     command = input('Write the comand> ')
     if command == 'help':
@@ -87,9 +103,9 @@ while True:
             add_take_tokens(login, amount, parser)
     elif command == 'exit':
         exit()
-    elif command == 'play':    
+    elif command == 'play':
         bet = int(input('choose your bet> '))
-        colour = chr(input('choose your color> '))
+        colour = str(input('choose your color> '))
         play(login, colour, bet, parser)
     else:
-        print('Invalid command')                
+        print('Invalid command')
