@@ -3,7 +3,9 @@ import argparse
 import random
 import library
 
+
 app = flask.Flask('Cassino')
+
 
 def create_main_parser():
     parser = argparse.ArgumentParser()
@@ -11,17 +13,20 @@ def create_main_parser():
     parser.add_argument('--port', default=8000)
     return parser.parse_args()
 
+
 @app.route('/autification', methods=['POST'])
 def create_login():
     login = str(flask.request.args['login'])
     password = str(flask.request.args['password'])
     return library.add_user(users_passwords, tokens, login, password)
 
+
 @app.route('/autification', methods=['GET'])
 def log_in():
     login = str(flask.request.args['login'])
     password = str(flask.request.args['password'])
     return library.check_password(users_passwords, login, password)
+
 
 @app.route('/<username>/tokens', methods=['POST'])
 def add_take_tokens(username):
@@ -31,9 +36,11 @@ def add_take_tokens(username):
     else:
         return False
 
+
 @app.route('/<username>/tokens', methods=['GET'])
 def check_amount_of_tokens(username):
     return str(library.check_tokens(username, tokens))
+
 
 @app.route('/<username>/game', methods=['GET'])
 def play(username):
@@ -48,6 +55,7 @@ def play(username):
         return f'black {score}'
     if score in green_spots:
         return f'green {score}'
+
 
 parser = create_main_parser()
 users_passwords = dict()

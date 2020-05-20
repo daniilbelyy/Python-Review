@@ -2,34 +2,44 @@ import argparse
 import requests
 import sys
 
+
 def create_main_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default = 'localhost')
     parser.add_argument('--port', default = 8000, type = int)
     return parser.parse_args()
+
+
 def get_in(login, password, parser):
-    answer = (requests.get(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text)
-    if answer == 'True':
-        return True
-    else:
-        return False
+    answer = requests.get(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text
+    return answer == 'True'
+
+
+def exit_with_question():
+    while True:
+        answer = input('Are you sure about that?(Y/N)')
+        if answer == 'Y':
+            print('Ok, let\'s go!')
+            exit()
+        elif answer == 'N':
+            print('Smart move')
+            break
+        else:
+            print('Invalid command, I will ask again')
 
 def create_login(login, password, parser):
-    answer = (requests.post(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text)
-    if answer == 'True':
-        return True
-    else:
-        return False
+    answer = requests.post(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text
+    return answer == 'True'
+
 
 def check_tokens(username, parser):
     return int(requests.get(f'http://{parser.host}:{parser.port}/{username}/tokens').text)
 
+
 def add_take_tokens(username, amount, parser):
     answer = (requests.post(f'http://{parser.host}:{parser.port}/{username}/tokens', params = dict(amount = amount)).text)
-    if answer == 'True':
-        return True
-    else:
-        return False
+    return answer == 'True'
+
 
 def play(username, colour, bet, parser):
     if add_take_tokens(username, -bet, parser):
@@ -52,10 +62,12 @@ def play(username, colour, bet, parser):
         print('Your bet is not correct(')
         return False
 
+
 def login_help():
     print('new - create login and password')
     print('login - login into system')
     print('exit - quit')
+
 
 def play_help():
     print('show - show the amount of tokens')
@@ -75,7 +87,7 @@ while True:
         if not create_login(login, password, parser):
             print('This login is already exist(')
     elif command == 'exit':
-        exit()
+        exit_with_question()
     elif command == 'login':
         login = input('Write login> ')
         password = input('Write password> ')
@@ -87,6 +99,7 @@ while True:
             print('Wrong password or login(')
     else:
         print('Invalid command')
+
 
 while True:
     command = input('Write the comand> ')

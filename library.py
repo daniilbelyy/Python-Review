@@ -1,10 +1,11 @@
 def add_user(users_passwords, tokens, login, password):
-    if users_passwords.get(login) == None:
+    if users_passwords.get(login) is None:
         users_passwords[login] = password
         tokens[login] = 0
         return 'True'
     else:
         return 'False'
+
 
 def check_password(users_passwords, login, password):
     if users_passwords.get(login) != None and users_passwords.get(login) == password:
@@ -12,9 +13,11 @@ def check_password(users_passwords, login, password):
     else:
         return 'False'
 
+
 def add_tokens(username, tokens, amount):
     tokens[username] = tokens[username] + amount
     return 'True'
+
 
 def check_tokens(username, tokens):
     return tokens[username]
