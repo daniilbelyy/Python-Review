@@ -5,8 +5,8 @@ class TestCassino(unittest.TestCase):
     def test_add_user_1(self):
         login = 'login'
         password = 'password'
-        user_passwords = dict()
-        tokens = dict()
+        user_passwords = {}
+        tokens = {}
         library.add_user(user_passwords, tokens, login, password)
         self.assertEqual(user_passwords[login], 'password')
 

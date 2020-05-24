@@ -1,124 +1,133 @@
 import argparse
 import requests
 import sys
+import phrases
+import pages
 
-
-def create_main_parser():
+def create_main_parser(defaulthost, defaultport):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host', default = 'localhost')
-    parser.add_argument('--port', default = 8000, type = int)
+    parser.add_argument('--host', default=defaulthost)
+    parser.add_argument('--port', default=defaultport, type=int)
     return parser.parse_args()
 
 
-def get_in(login, password, parser):
-    answer = requests.get(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text
+def get_in(login, password, adress):
+    answer = requests.get(f'{adress}/{pages.autification_page}', params = dict(login = login, password = password)).text
     return answer == 'True'
 
 
 def exit_with_question():
     while True:
-        answer = input('Are you sure about that?(Y/N)')
+        answer = input(phrases.ask_again)
         if answer == 'Y':
-            print('Ok, let\'s go!')
+            print(phrases.permission_given)
             exit()
         elif answer == 'N':
-            print('Smart move')
+            print(phrases.permission_not_given)
             break
         else:
-            print('Invalid command, I will ask again')
+            print(phrases.command_doesnt_exist)
 
-def create_login(login, password, parser):
-    answer = requests.post(f'http://{parser.host}:{parser.port}/autification', params = dict(login = login, password = password)).text
+
+def create_login(login, password, adress):
+    answer = requests.post(f'{adress}/{pages.autification_page}', params = dict(login = login, password = password)).text
     return answer == 'True'
 
 
-def check_tokens(username, parser):
-    return int(requests.get(f'http://{parser.host}:{parser.port}/{username}/tokens').text)
+def check_tokens(username, adress):
+    return int(requests.get(f'{adress}/{username}/{pages.tokens_page}').text)
 
 
-def add_take_tokens(username, amount, parser):
-    answer = (requests.post(f'http://{parser.host}:{parser.port}/{username}/tokens', params = dict(amount = amount)).text)
+def add_take_tokens(username, amount, adress):
+    answer = requests.post(f'{adress}/{username}/{pages.tokens_page}', params = dict(amount = amount)).text
     return answer == 'True'
 
 
-def play(username, colour, bet, parser):
-    if add_take_tokens(username, -bet, parser):
-        tokens = check_tokens(username, parser)
-        print(f'Your tokens for now: {tokens}')
-        results = (requests.get(f'http://{parser.host}:{parser.port}/{username}/game')).text
+def play(username, colour, bet, adress, black_red_win, green_win):
+    if add_take_tokens(username, -bet, adress):
+        tokens = check_tokens(username, adress)
+        print(f'{phrases.tokens_amount}{tokens}')
+        results = (requests.get(f'{adress}/{username}/{pages.game_page}')).text
         result = results.split(' ')
-        print(f'The game goes on! Today it is {result[1]} , {result[0]}!')
+        print(f'{phrases.play}{result[1]} , {result[0]}!')
         if colour == result[0]:
-            print('You won!')
+            print(win)
             if colour == 'black' or colour == 'red':
-                add_take_tokens(username, 2 * bet, parser)
+                add_take_tokens(username, black_red_win * bet, adress)
             else:
-                add_take_tokens(username, 14 * bet, parser)
-            tokens = check_tokens(username, parser)
+                add_take_tokens(username, green_win * bet, adress)
+            tokens = check_tokens(username, adress)
         else:
-            print('You lost(')
+            print(phrases.lose)
         return True
     else:
-        print('Your bet is not correct(')
+        print(phrases.wrong_bet)
         return False
 
 
 def login_help():
-    print('new - create login and password')
-    print('login - login into system')
-    print('exit - quit')
+    print(phrases.help_new)
+    print(phrases.help_login)
+    print(phrases.help_exit)
 
 
 def play_help():
-    print('show - show the amount of tokens')
-    print('add - add some tokens')
-    print('play - go to table and play')
+    print(phrases.help_show)
+    print(phrases.help_add)
+    print(phrases.help_play)
 
 
-parser = create_main_parser()
+defaulthost = 'localhost'
+defaultport = 8000
+black_red_win = 2
+green_win = 14
+
+parser = create_main_parser(defaulthost, defaultport)
+adress = f'http://{parser.host}:{parser.port}'
 login = ''
+
 while True:
-    command = input('Write the comand> ')
+    command = input(phrases.ask_command)
     if command == 'help':
         login_help()
     elif command == 'new':
-        login = input('Write new login> ')
-        password = input('Write password> ')
-        if not create_login(login, password, parser):
-            print('This login is already exist(')
+        login = input(phrases.ask_new_login)
+        password = input(phrases.ask_password)
+        if not create_login(login, password, adress):
+            print(phrases.login_already_exist)
     elif command == 'exit':
         exit_with_question()
     elif command == 'login':
-        login = input('Write login> ')
-        password = input('Write password> ')
-        answer = get_in(login, password, parser)
+        login = input(phrases.ask_login)
+        password = input(phrases.ask_password)
+        answer = get_in(login, password, adress)
         if answer:
-            print(f'Welcome, {login}!')
+            print(f'{phrases.greatings}{login}!')
             break
         else:
-            print('Wrong password or login(')
+            print(phrases.wrong_password_login)
     else:
-        print('Invalid command')
+        print(phrases.command_doesnt_exist)
 
 
 while True:
-    command = input('Write the comand> ')
+    command = input(phrases.ask_command)
     if command == 'help':
         play_help()
     elif command == 'show':
-        tokens = check_tokens(login, parser)
-        print(f'You have {tokens} tokens')
+        tokens = check_tokens(login, adress)
+        print(f'{phrases.tokens_amount}{tokens}')
     elif command == 'add':
-        amount = int(input('How many tokens do you want?'))
+        amount = int(input(phrases.ask_amount))
         if amount <= 0:
-            print('amount is invalid')
+            print(phrases.wrong_amount)
         else:
-            add_take_tokens(login, amount, parser)
+            add_take_tokens(login, amount, adress)
     elif command == 'exit':
         exit()
     elif command == 'play':
-        bet = int(input('choose your bet> '))
-        colour = str(input('choose your color> '))
-        play(login, colour, bet, parser)
+        bet = int(input(phrases.ask_bet))
+        colour = str(input(phrases.ask_colour))
+        play(login, colour, bet, adress, black_red_win, green_win)
     else:
-        print('Invalid command')
+        print(phrases.command_doesnt_exist)
