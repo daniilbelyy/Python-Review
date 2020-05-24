@@ -3,6 +3,8 @@ import requests
 import sys
 import phrases
 import pages
+import server_const
+
 
 def create_main_parser(defaulthost, defaultport):
     parser = argparse.ArgumentParser()
@@ -51,7 +53,7 @@ def play(username, colour, bet, adress, black_red_win, green_win):
         result = results.split(' ')
         print(f'{phrases.play}{result[1]} , {result[0]}!')
         if colour == result[0]:
-            print(win)
+            print(phrases.win)
             if colour == 'black' or colour == 'red':
                 add_take_tokens(username, black_red_win * bet, adress)
             else:
@@ -77,12 +79,7 @@ def play_help():
     print(phrases.help_play)
 
 
-defaulthost = 'localhost'
-defaultport = 8000
-black_red_win = 2
-green_win = 14
-
-parser = create_main_parser(defaulthost, defaultport)
+parser = create_main_parser(server_const.defaulthost, server_const.defaultport)
 adress = f'http://{parser.host}:{parser.port}'
 login = ''
 
@@ -128,6 +125,6 @@ while True:
     elif command == 'play':
         bet = int(input(phrases.ask_bet))
         colour = str(input(phrases.ask_colour))
-        play(login, colour, bet, adress, black_red_win, green_win)
+        play(login, colour, bet, adress, server_const.black_red_win, server_const.green_win)
     else:
         print(phrases.command_doesnt_exist)
