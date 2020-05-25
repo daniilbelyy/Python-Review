@@ -3,11 +3,13 @@ import argparse
 import random
 import Library
 import pages
+import server_const
+
 
 app = flask.Flask('Cassino')
 
 
-def create_main_parser(defaulthost, defaultport):
+def create_main_parser(server_const.defaulthost, server_const.defaultport):
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default=defaulthost)
     parser.add_argument('--port', default= defaultport)
@@ -43,30 +45,23 @@ def check_amount_of_tokens(username):
 
 
 @app.route('/<username>/{game_page}', methods=['GET'])
-def play(usernamem, red_spots, black_spots, green_spots):
-    all_colours = len(red_spots) + len(black_spots) + len(green_spots)
+def play(username):
+    all_colours = len(server_const.red_spots) + len(server_const.black_spots) + len(server_const.green_spots)
     score = random.randint(1, all_colours)
-    if score in red_spots:
+    if score in server_const.red_spots:
         return f'red {score}'
-    if score in black_spots:
+    if score in server_const.black_spots:
         return f'black {score}'
-    if score in green_spots:
+    if score in server_const.green_spots:
         return f'green {score}'
 
 
 def main():
-    parser = create_main_parser()
+    parser = create_main_parser(server_const.defaulthost, server_const.defaultport)
     users_passwords = {}
     tokens = {}
 
     app.run(parser.host, parser.port, debug=True, use_reloader = False)
-
-
-defaulthost = localhost
-defaultport = 8000
-red_spots = [1, 3, 5, 7, 9, 11, 13]
-black_spots = [2, 4, 6, 8, 10, 12, 14]
-green_spots = [15]
 
 
 if __name__ == '__main__':
